@@ -1,34 +1,36 @@
 import {useEffect} from "react";
 import logo from "./logo.svg";
 import "./App.css";
+import People from "./People";
+
+import {gql, useQuery} from "@apollo/client";
+
+const ALL_PEOPLE = gql`
+	query {
+		allPeople {
+			id
+			name
+			phone
+			address {
+				street
+				city
+			}
+		}
+	}
+`;
 
 function App() {
-	useEffect(() => {
-		fetch("http://localhost:4000/", {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-			},
-			body: JSON.stringify({
-				query: `
-          query {
-            allPeople {
-              name
-              phone
-            }
-          }
-        `,
-			}),
-		})
-			.then((res) => res.json())
-			.then((res) => console.log(res.data));
-	}, []);
+	const {data, error, loading} = useQuery(ALL_PEOPLE);
+
+	if (error) {
+		return <span style={{color: "red"}}>{error}</span>;
+	}
 
 	return (
 		<div className='App'>
 			<header className='App-header'>
 				<img src={logo} className='App-logo' alt='logo' />
-				<p>GraphQL + React!</p>
+				{loading ? <p>Loading...</p> : <People people={data?.allPeople} />}
 			</header>
 		</div>
 	);
