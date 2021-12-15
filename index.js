@@ -1,28 +1,6 @@
 import {ApolloServer, UserInputError, gql} from "apollo-server";
 import {v1 as uuid} from "uuid";
-
-const people = [
-	{
-		name: "John",
-		phone: "555-555-5555",
-		street: "123 Main St",
-		city: "Anytown",
-		id: "31312ddd-asdqwe-123123",
-	},
-	{
-		name: "Uriel",
-		phone: "555-555-5555",
-		street: "123 Main St",
-		city: "Anytown",
-		id: "31312ddd-asdqwe-123123",
-	},
-	{
-		name: "Alguien",
-		street: "123 Main St",
-		city: "Anytown",
-		id: "31312ddd-asdqwe-123123",
-	},
-];
+import axios from "axios";
 
 const typeDefs = gql`
 	enum YesNo {
@@ -50,16 +28,18 @@ const typeDefs = gql`
 
 	type Mutation {
 		addPerson(name: String!, phone: String, street: String, city: String): Person
+		editNumber(name: String!, phone: String): Person
 	}
 `;
 
 const resolvers = {
 	Query: {
 		peopleCount: () => people.length,
-		allPeople: (root, args) => {
-			if (!args.phone) return people;
+		allPeople: async (root, args) => {
+			const {data: peopleFromRESTAPI} = await axios.get("http://localhost:3000/people");
+			if (!args.phone) return peopleFromRESTAPI;
 			const byPhone = (person) => (args.phone === "YES" ? person.phone : !person.phone);
-			return people.filter(byPhone);
+			return peopleFromRESTAPI.filter(byPhone);
 		},
 		findPerson: (root, args) => {
 			const {name} = args;
@@ -77,6 +57,18 @@ const resolvers = {
 
 			const person = {...args, id: uuid()};
 			people.push(person);
+			return person;
+		},
+
+		editNumber: (root, args) => {
+			const person = people.find((person) => person.name === args.name);
+			if (!person) {
+				throw new UserInputError("Person not found", {
+					invalidArgs: args.name,
+				});
+			}
+
+			person.phone = args.phone;
 			return person;
 		},
 	},
