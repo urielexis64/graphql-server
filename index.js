@@ -10,15 +10,14 @@ const people = [
 		id: "31312ddd-asdqwe-123123",
 	},
 	{
-		name: "John",
+		name: "Uriel",
 		phone: "555-555-5555",
 		street: "123 Main St",
 		city: "Anytown",
 		id: "31312ddd-asdqwe-123123",
 	},
 	{
-		name: "John",
-		phone: "555-555-5555",
+		name: "Alguien",
 		street: "123 Main St",
 		city: "Anytown",
 		id: "31312ddd-asdqwe-123123",
@@ -26,6 +25,11 @@ const people = [
 ];
 
 const typeDefs = gql`
+	enum YesNo {
+		YES
+		NO
+	}
+
 	type Address {
 		street: String!
 		city: String!
@@ -40,7 +44,7 @@ const typeDefs = gql`
 
 	type Query {
 		peopleCount: Int!
-		allPeople: [Person]!
+		allPeople(phone: YesNo): [Person]!
 		findPerson(name: String!): Person
 	}
 
@@ -52,7 +56,11 @@ const typeDefs = gql`
 const resolvers = {
 	Query: {
 		peopleCount: () => people.length,
-		allPeople: () => people,
+		allPeople: (root, args) => {
+			if (!args.phone) return people;
+			const byPhone = (person) => (args.phone === "YES" ? person.phone : !person.phone);
+			return people.filter(byPhone);
+		},
 		findPerson: (root, args) => {
 			const {name} = args;
 			return people.find((person) => person.name === name);
