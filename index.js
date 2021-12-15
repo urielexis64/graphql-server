@@ -1,4 +1,5 @@
-import {ApolloServer, gql} from "apollo-server";
+import {ApolloServer, UserInputError, gql} from "apollo-server";
+import {v1 as uuid} from "uuid";
 
 const people = [
 	{
@@ -42,6 +43,10 @@ const typeDefs = gql`
 		allPeople: [Person]!
 		findPerson(name: String!): Person
 	}
+
+	type Mutation {
+		addPerson(name: String!, phone: String, street: String, city: String): Person
+	}
 `;
 
 const resolvers = {
@@ -53,6 +58,21 @@ const resolvers = {
 			return people.find((person) => person.name === name);
 		},
 	},
+
+	Mutation: {
+		addPerson: (root, args) => {
+			if (people.find((person) => person.name === args.name)) {
+				throw new UserInputError("Person already exists", {
+					invalidArgs: args.name,
+				});
+			}
+
+			const person = {...args, id: uuid()};
+			people.push(person);
+			return person;
+		},
+	},
+
 	Person: {
 		address: (root) => {
 			const {street, city} = root;
