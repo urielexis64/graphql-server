@@ -41,9 +41,10 @@ const resolvers = {
 			const byPhone = (person) => (args.phone === "YES" ? person.phone : !person.phone);
 			return peopleFromRESTAPI.filter(byPhone);
 		},
-		findPerson: (root, args) => {
+		findPerson: async (root, args) => {
 			const {name} = args;
-			return people.find((person) => person.name === name);
+			const {data: peopleFromRESTAPI} = await axios.get("http://localhost:3000/people");
+			return peopleFromRESTAPI.find((person) => person.name === name);
 		},
 	},
 
