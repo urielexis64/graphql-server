@@ -1,4 +1,3 @@
-import {useEffect} from "react";
 import logo from "./logo.svg";
 import "./App.css";
 import People from "./People";
@@ -23,7 +22,7 @@ function App() {
 	const {data, error, loading} = useQuery(ALL_PEOPLE);
 
 	if (error) {
-		return <span style={{color: "red"}}>{error}</span>;
+		return <span style={{color: "red"}}>{error.message}</span>;
 	}
 
 	return (
